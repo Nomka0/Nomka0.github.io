@@ -1,0 +1,2056 @@
+<canvas id="canvas" width="1000" height="1000" tabindex="1"></canvas>
+<script src="web-lib/processing.js"></script>
+<script src="web-lib/functional-light.js"></script>
+<script>
+  //Vamos a usar http://processingjs.org/
+  // o https://p5js.org/reference/
+  // Importamos las librerias
+  let { append, cons, first, isEmpty, isList, length, rest } = functionalLight;
+  
+  function make(data, attribute) {
+    return Object.assign({}, data, attribute);
+  }
+
+  const WIDTH = 1350;
+  const HEIGHT = 600;
+  const SIZE = 50;
+  const puntajes = [0, 0, 0, 0, 0, 0]
+  const galletas = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,11,11,11,11,12,12,12,12,12,12,14,14,14,14,14,14,15,15,15,15,16,16,16,16,16,16,16,16,17,17,17,17,17,18,18,18,18,18,18,19,19,19,19,19,19,19,20,20,20,21,21,21,21,21,21,21,22,22,22,22,22, 22, 23, 23, 23, 23, 23, 23, 23, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25],
+                    [1, 2, 3, 5, 6, 7, 8, 9,10, 1, 3, 5,10, 1, 3, 5, 6, 7, 8,10, 1, 3, 4, 5, 8,10, 1, 2, 3, 5, 6, 8,10, 2, 6,10, 1, 2, 3, 4, 5, 6,10, 1, 6, 7, 8, 9,10, 1, 2, 3, 8,10, 1, 3, 4, 5, 6, 7, 8,10, 1, 3, 8,10, 1, 2, 3, 8, 9,10, 1, 2, 3, 8, 9,10, 1, 3, 8,10, 1, 3, 4, 5, 6, 7, 8,10, 1, 2, 3, 8,10, 1, 6, 7, 8, 9,10, 1, 2, 3, 4, 5, 6,10, 2, 6,10, 1, 2, 3, 5, 6, 8,10, 1, 3, 4, 5, 8, 10, 1, 3, 5, 6, 7, 8, 10, 1, 3, 5, 10, 1, 2, 3, 5, 6, 7, 8, 9, 10]]
+  const galletasEspeciales = [
+  [6,20],
+  [8,8]]
+  const mapa = [
+    [1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,  1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1],
+    [1,"C",	0,	0,	0,"D",	1,"C",	0,"H",	0,	0,"D",	1,"C",	0,	0,"H",	0,"D",	1,"C",	0,	0,	0,"D",	1],
+    [1,	0,	1,	1,	1,"E",	0,"F",	1,	0,	1,	1,	0,	1,	0,	1,	1,	0,	1,"E",	0,"F",	1,  1,	1,	0,	1],
+    [1,"A",	0,	0,"H","B",	1,	0,	1,"A","H",	0,"G",	7,"G",	0,"H","B",  1,	0,	1,"A","H",	0,	0,"B",	1],
+    [1,	1,	1,	1,	0,	1,	1,	0,	1,	1,	0,	1,	1,	2,	1,	1,	0,	1,	1,	0,	1,	1,	0,	1,	1,	1,	1],
+    [3,"C",	0,"H","G","D",  1,	0,	1,	1,	0,	1,	0,	4,	0,	1,	0,	1,	1,	0,	1,"C","G","H",	0,"D",	2],
+    [1,	0,  1,	0,	1,"A",	0,"G","D",	1,	0,	1,	0,	6,	0,  1,	0,	1,"C","G",	0,"B",	1,	0,	1,	0,	1],
+    [1,	0,	1,	0,	1,	1,	1,	1,	0,	1,	0,	1,	1,	1,	1,	1,	0,	1,	0,	1,	1,	1,	1,	0,	1,	0,	1],
+    [1,	0,	1,"A",	0,	0,"I",	1,"E",	0,"G",	0,"H",	0,"H",	0,"G",  0,"F",  1,"J",	0,	0,"B",	1,	0,	1],
+    [1,	0,	1,	1,	1,	1,	1,	1,	0,	1,	1,	1,	0,	1,	0,	1,	1,	1,	0,	1,	1,	1,	1,	1,	1,	0,	1],
+    [1,"A",	0,	0,	0,	0,	0,	0,"G",	0,	0,	0,"B",	1,"A",	0,	0,	0,"G",	0,	0,	0,	0,	0,	0,"B",	1],
+    [1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1]
+  ]
+  const fire = [
+    [0,0 ,2,3,6,6,7 ,19,20,26,26,11,11,11,11,12,13,13,14,15,15,15,12,14,15,23,20,24],
+    [0,11,9,2,4,0,11,11,0 ,0 ,11,4 , 5, 6, 7,7 ,7 ,11,7 , 7,5 ,6 ,4 , 4, 4,2 ,4 ,9]]
+  const startGhost = { 
+    uno: { x: 12, y: 5, sentido: "RIGHT"},
+    dos: { x: 14, y: 5, sentido: "LEFT"},
+    tres: { x: 12, y: 6, sentido: "RIGHT"},
+    cuatro: { x: 14, y: 6, sentido: "LEFT"},
+    cinco: { x: 13, y: 3, sentido: "RIGHT"}
+    }
+
+  function sketchProc(processing) {
+
+      /*Definicion: world = {              
+    time: number , 
+    pacman: { x: number, y: number, sentido: str, poder: str, tiempoInterno: number }, 
+    fantasma: { x: number, y: number, sentido: str},
+    fantasma2: { x: number, y: number, sentido: str},
+    fantasma3: { x: number, y: number, sentido: str},
+    fantasma4: { x: number, y: number, sentido: str},
+    fantasma5: { x: number, y: number, sentido: str},
+    juego: str, 
+    cookies: (listade listas),
+    specialCookies: (listade listas),
+    vida: str ,
+    gano: str,
+    scoreJuego: number, 
+    Maxi: (listade numeros),
+    dificultad: str 
+    }
+
+    Definicion: startGhost = { 
+    uno: { x: number, y: number, sentido: str},
+    dos: { x: number, y: number, sentido: str},
+    tres: { x: number, y: number, sentido: str},
+    cuatro: { x: number, y: number, sentido: str},
+    cinco: { x: number, y: number, sentido: str}
+    }
+    */
+    
+
+    /*Contrato: pintarMapa2: (listade listas de numeros o str), world -> imagen
+    Proposito: La funcion se encarga de pintar el mapa de pacman.
+    */
+    
+    function pintarMapa2(mapa, world) {
+      function pintarMapa(mapa, i, j, world, acum) {
+        if (i != length(mapa)) {
+          if (length(mapa[i]) == j) {
+            pintarMapa(mapa, i + 1, 0, world)
+          }
+          else if ((mapa[i][j] == 4) && (length(world.cookies[0]) != 0)){
+            processing.image(doorClose, j * SIZE, i * SIZE, SIZE, SIZE)
+            pintarMapa(mapa, i, j + 1, world)
+          }
+          else if ((length(world.cookies[0]) == 0)&&(mapa[i][j] == 4)){
+            processing.image(doorOpen, j * SIZE, i * SIZE, SIZE, SIZE)
+            pintarMapa(mapa, i, j + 1, world)
+          }
+          else if (mapa[i][j] != 1) {
+            processing.fill(0, 0, 0);
+            processing.rect(j * SIZE, i * SIZE, SIZE, SIZE)
+            pintarMapa(mapa, i, j + 1, world)
+          }
+          else if (mapa[i][j] == 1) {
+            processing.image(wall1, j * SIZE, i * SIZE, SIZE, SIZE)
+            pintarMapa(mapa, i, j + 1, world)
+          }
+        }
+      }
+      pintarMapa(mapa, 0, 0, world, 0)
+    }
+    
+
+
+    /*Contrato: pintarPacman: (world) -> imagen
+    Proposito: La funcion se encarga de pintar el pacman.
+    */
+    function pintarPacman(world) {
+      if (world.time % 2 == 0) {
+        if (world.pacman.sentido == "UP") {
+          processing.image(pacmanUp1, world.pacman.x * SIZE, world.pacman.y * SIZE, SIZE, SIZE)
+        }
+        else if (world.pacman.sentido == "DOWN") {
+          processing.image(pacmanDown1, world.pacman.x * SIZE, world.pacman.y * SIZE, SIZE, SIZE)
+        }
+        else if (world.pacman.sentido == "RIGHT") {
+          processing.image(pacmanRight1, world.pacman.x * SIZE, world.pacman.y * SIZE, SIZE, SIZE)
+        }
+        else if (world.pacman.sentido == "LEFT") {
+          processing.image(pacmanLeft1, world.pacman.x * SIZE, world.pacman.y * SIZE, SIZE, SIZE)
+        }
+      }
+      else {
+        if (world.pacman.sentido == "UP") {
+          processing.image(pacmanUp3, world.pacman.x * SIZE, world.pacman.y * SIZE, SIZE, SIZE)
+        }
+        else if (world.pacman.sentido == "DOWN") {
+          processing.image(pacmanDown3, world.pacman.x * SIZE, world.pacman.y * SIZE, SIZE, SIZE)
+        }
+        else if (world.pacman.sentido == "RIGHT") {
+          processing.image(pacmanRight3, world.pacman.x * SIZE, world.pacman.y * SIZE, SIZE, SIZE)
+        }
+        else if (world.pacman.sentido == "LEFT") {
+          processing.image(pacmanLeft3, world.pacman.x * SIZE, world.pacman.y * SIZE, SIZE, SIZE)
+        }
+      }
+    }
+    
+    
+    /*Contrato: fuego: (listade 2 listas de numeros), world -> imagen
+    Proposito: La funcion se encarga de pintar el fuego cuando el juego esta en dificultad dificil.
+    */
+    function fuego(list, world){
+      function fuego2(list, i, j, world){
+        if (length(list[0]) != i){
+          processing.fill(0, 0, 0);
+          processing.rect(list[j][i] * SIZE, list[j + 1][i] * SIZE, SIZE, SIZE)
+          if (world.time%5==0){
+            processing.image(fire1, list[j][i] * SIZE, list[j + 1][i] * SIZE, SIZE, SIZE)
+            fuego2(list, i + 1, j, world)
+          } else if (world.time%3==0){
+            processing.image(fire2, list[j][i] * SIZE, list[j + 1][i] * SIZE, SIZE, SIZE)
+            fuego2(list, i + 1, j, world)
+          } else{
+            processing.image(fire3, list[j][i] * SIZE, list[j + 1][i] * SIZE, SIZE, SIZE)
+            fuego2(list, i + 1, j, world)
+          }
+        }
+      }
+      return fuego2(list, 0, 0, world)
+    }
+      
+    
+    /*Contrato: pintarMenu: (world) -> imagen
+    Proposito: La funcion se encarga de pintar los menus del pacman.
+    */
+
+    function pintarMenu(world) {
+      if (world.juego == 0) {
+        if (world.time % 3 == 0){
+          processing.image(Inicio2, 0, 0);
+        } else{
+          processing.image(Inicio, 0, 0);
+        }
+      }
+      else {
+        if ((world.time % 3 == 0) && (world.juego > 0)) {
+          processing.image(menu0, 0, 0)
+        }
+        else if (world.juego == 1) {
+          audioWin.load()
+          audioFondo.play()
+          processing.image(menu1, 0, 0);
+        }
+        else if ((world.juego == 2) || (world.juego == -2)) {
+          if (world.juego == -2) {
+            processing.image(ranking, 0, 0);
+            pintarScore(world.Maxi);
+          } else {
+            processing.image(menu2, 0, 0);
+          }
+        }
+        else if ((world.juego == 3) || (world.juego == -3)) {
+          if (world.juego == -3) {
+            processing.image(controls, 0, 0);
+          } else {
+            processing.image(menu3, 0, 0);
+          }
+        }
+        else if ((world.juego == 4) || (world.juego == -4)) {
+          if (world.juego == -4) {
+            processing.image(creditos, 0, 0);
+          } else {
+            processing.image(menu4, 0, 0);
+          }
+        }
+        else if (world.juego == 5) {
+          processing.image(menu5, 0, 0);
+        }
+        else if (world.juego == "MUERTE"){
+          if (world.time%2){
+            audioWin.load()
+            audioFondo.play()
+            processing.image(theEnd, 0, 0)
+            processing.fill(255, 0, 0);
+            processing.textFont(font, 35)
+            processing.text(world.scoreJuego, 700, 510)
+          } else{
+          processing.image(theEnd2, 0, 0)
+          processing.fill(255, 0, 0);
+          processing.textFont(font, 35)
+          processing.text(world.scoreJuego, 700, 510)
+          }
+        }
+        else if (world.juego == "VICTORIA"){
+          if (world.time%3){
+            processing.image(victory, 0, 0)
+            processing.fill(250, 250, 250);
+            processing.textFont(font, 43)
+            processing.text(world.scoreJuego, 700, 495)
+          } else{
+            processing.image(victory2, 0, 0)
+            processing.fill(250, 250, 250);
+            processing.textFont(font, 43)
+            processing.text(world.scoreJuego, 700, 495)
+          }
+        }
+        else if ((world.juego == "NORMAL")||(world.juego == "DIFICIL")){
+          if (world.time%3){
+            processing.image(normalDificl, 0, 0)
+          }
+          else if (world.juego == "NORMAL"){
+            processing.image(normal, 0, 0)
+          }
+          else if (world.juego == "DIFICIL"){
+            processing.image(dificl, 0, 0)
+          }
+        }
+      }
+    }
+    
+
+    
+    /*Contrato: pintarGalletas: (listade 2 listas de numeros o str), str -> imagen
+    Proposito: La funcion se encarga de pintar las galletas especiales y normales
+    */
+    function pintarGalletas(list, tipo){
+      function pintarGalletas2(list, i, j, tipo) {
+        if (tipo=="NORMAL"){
+          if (length(list[0]) != i) {
+          processing.fill(250, 250, 250);
+          processing.ellipse(list[j][i] * SIZE + SIZE / 2, list[j + 1][i] * SIZE + SIZE / 2, SIZE / 3, SIZE / 3);
+          pintarGalletas2(list, i + 1, j, tipo)
+          }
+        }
+        else if (tipo=="ESPECIALES"){
+          if (length(list[0]) != i) {
+          processing.fill(255, 0, 0);
+          processing.ellipse(list[j][i] * SIZE + SIZE / 2, list[j + 1][i] * SIZE + SIZE / 2, SIZE / 2, SIZE / 2);
+          pintarGalletas2(list, i + 1, j, tipo)
+          }
+        }
+      }
+      return pintarGalletas2(list, 0, 0, tipo)
+    }
+
+
+
+    /*Contrato: verificadorPosicion: (listade 2 listas de numeros o str), numero o str, numero o str  -> boolean
+    Proposito: La funcion verifica si los valores "x" "y" son iguales a dos valores 
+    de igual posicion en una matriz de dos filas, donde "x" se compara con la primer fila 
+    y la "y" con la segunda, de ser asi devuelve true.
+    Contexto: Es la funcion encargada de verificar si el pacman esta sobre una galleta o un fantasma.
+    Ejemplos:
+    verificadorPosicion([[1,5],[3,1]],1,2) -> false
+    verificadorPosicion([[1,1],[3,2]],1,2) -> true
+    verificadorPosicion([[1,5,6,7,6],[1,1,1,1,2]],1,2) -> false
+    */
+
+    function verificadorPosicion(list, x, y) {
+      function lector2(list, x, y, j, i) {
+        if (list[j][i] == x) {
+          if (list[j + 1][i] == y) {
+            return true
+          }
+          else if (i != length(list[j])) {
+            return lector2(list, x, y, j, i + 1)
+          }
+        }
+        else if (i != length(list[j])) {
+          return lector2(list, x, y, j, i + 1)
+        }
+        else {
+          return false
+        }
+      }
+      return lector2(list, x, y, 0, 0)
+    }
+    
+
+
+    /*Contrato: eliminarGalletas: (listade 2 listas de numeros o str), numero o str, numero o str  -> (listade 2 listas de numeros o str)
+    Proposito:  La funcion elimina el valor "x" para la primera fila y "y" para la segunda, si dicha "x" 
+    y "y" existen en las listas y tienen el mismo valor posicional, en caso contrario solo devulve la lista de entrada.
+    Contexto: Si el pacman esta sobre una galleta, se crea una copia de la matriz de las galletas, pero sin dicha galleta.
+    Ejemplos:
+    eliminarGalletas([[1,2],[3,1]],1,2) -> [[1,2],[3,1]]
+    eliminarGalletas([[1,1],[3,2]],1,2) -> [[1],[3]]
+    eliminarGalletas([[1,5,6,7,6],[1,1,1,1,2]],7,1) -> [[1, 5, 6, 6],[1, 1, 1, 2]]
+    */
+
+    function eliminarGalletas(list, x, y) {
+      function eliminarGalletasXY(list, list2, x, y) {
+        if (isEmpty(list)){
+          return []
+        }
+        else if ((first(list) == x) && (first(list2) == y) && (length(list)!=1)) {
+          return cons(first(rest(list)), eliminarGalletasXY(rest(rest(list)), rest(rest(list2)), x, y))
+        } 
+        else if ((first(list) == x) && (first(list2) == y)&&(length(list) == 1)) {
+          return []
+        }
+        else {
+          return cons(first(list), eliminarGalletasXY(rest(list), rest(list2), x, y))
+        }
+      }
+      return cons(eliminarGalletasXY(list[0], list[1], x, y), cons(eliminarGalletasXY(list[1], list[0], y, x), []))
+    }
+    
+    
+    
+    
+
+
+    /*Contrato: nuevasGalletas: (listade 2 listas de numeros o str), numero o str, numero o str  -> (listade 2 listas de numeros o str)
+    Proposito:  La funcion elimina el valor "x" para la primera fila y "y" para la segunda, si dicha "x" 
+    y "y" existen en las listas y tienen el mismo valor posicional, en caso contrario solo devulve la lista de entrada.
+    Ejemplos:
+    nuevasGalletas([[1,2],[3,1]],1,2) -> [[1,2],[3,1]]
+    nuevasGalletas([[1,1],[3,2]],1,2) -> [[1],[3]]
+    nuevasGalletas([[1,5,6,7,6],[1,1,1,1,2]],7,1) -> [[1, 5, 6, 6],[1, 1, 1, 2]]
+    */
+    //****Esta funcion es mas que todo para evitar procesos de mas******
+    function nuevasGalletas(list, x, y) {
+      if (verificadorPosicion(list, x, y) == true) {
+        return eliminarGalletas(list, x, y)
+      }
+      else {
+        return list
+      }
+    }
+
+    
+
+    /*Contrato: score: world, number, number  -> number
+    Proposito: Si la entrada es true, retorna 100, en caso contrario, retorna 0.
+    Contexto: Si el pacman se para sobre una galleta, la entrada sera un true.
+    Ejemplos:
+    score(true) -> 100
+    score(false) -> 0
+    */
+    function score(world, x, y) {
+      if (verificadorPosicion(world.cookies, x, y) == true) {
+        return 100
+      }
+      if (verificadorPosicion(world.specialCookies, x, y) == true){
+        return 500
+      }
+      else {
+        return 0
+      }
+    }
+    
+
+
+    /*Contrato: insertIndOrder: (listade numeros), numero o "b" -> list
+    Proposito: La funcion inserta un valor numerico "x" en una lista la cual siempre esta en 
+    orden ascendente, tambien se puede usar el valor "b" como entrada pero en ese caso solo 
+    retornara la lista original.
+    Ejemplos:
+    insertInOrder([1,200,300,300,1000],0) -> [0,1,200,300,300,1000]
+    insertInOrder([5.5,6.2,6.7,7],7) -> [5.5,6.2,6.7,7,7]
+    insertInOrder([0,0,0,1,2],1.1) -> [0,0,0,1,1.1,2]
+    */
+    function insertInOrder(lista, x) {
+      if (isEmpty(lista) && x == "b") {
+        return [];
+      }
+      else if (isEmpty(lista) && x != "b") {
+        return cons(x, insertInOrder(lista, "b"));
+      }
+      else if (first(lista) > x) {
+        return cons(x, insertInOrder(lista, "b"));
+      }
+      else {
+        return cons(first(lista), insertInOrder(rest(lista), x))
+      }
+    }
+
+
+
+    /*Contrato: mayorL: (listade numeros) -> numero
+    Proposito: La funcion se encarga de encontrar el valor maximo de una lista de numeros.
+    Ejemplos:
+    mayorL(2,3,100,1000) -> 1000
+    mayorL(0,0,0,0) -> 0
+    mayorL(1,-6,-1000,0) -> 1
+    */
+    function mayorL(lista) {
+      if (isEmpty(lista)) {
+        return null;
+      }
+      else if (length(lista) == 1) {
+        return first(lista);
+      }
+      else {
+        return Math.max(first(lista), mayorL(rest(lista)));
+      }
+    }
+
+
+
+    /*Contrato: menor: (listade numeros) -> numero
+    Proposito: Encontrar el valor minimo de una lista de numeros.
+    Ejemplos:
+    menor([2,3,100,1000]) -> 2
+    menor([0,0,0,0]) -> 0
+    menor([1,-6,-1000,0]) -> -1000
+    */
+    function menor(lista) {
+      if (isEmpty(lista)) {
+        return null;
+      }
+      else if (length(lista) == 1) {
+        return first(lista);
+      }
+      else {
+        return Math.min(first(lista), menor(rest(lista)));
+      }
+    }
+
+
+
+    /*Contrato: delete: (listade numeros o str), number -> (listade numeros o str)
+    Proposito: La funcion se encarga de eliminar el valor en la posicion "n" respecto a la lista digitada, 
+    si la posicion existe, en caso contrario devuelve la lista original.
+    Ejemplos:
+    delete([1,3,10,2,3],4) -> [1,3,10,2]
+    delete([],-1) -> []
+    delete([1,5,2,100],0) -> [5,2,100]
+    */
+    function delet(lista, n) {
+      if (isEmpty(lista)) {
+        return [];
+      }
+      else if (n == 0 && length(lista) != 1) {
+        return cons(first(rest(lista)), delet(rest(rest(lista)), n - 1));
+      }
+      else if (n == 0 && length(lista) == 1) {
+        return delet(rest(lista), n);
+      }
+      else {
+        return cons(first(lista), delet(rest(lista), n - 1));
+      }
+    }
+
+
+
+    /*Contrato: numberRandom: number, number -> number
+    Proposito: Funcion encargada de dar un numero entero aleatorio entre el min(incluido) y el max(excluido).
+    Ejemplos:
+    numberRandom(4,5) -> 4
+    numberRandom(1, 10) -> 5
+    numberRandom(1, 10) -> 1
+    */
+    function numberRandom(min, max) {
+      return Math.trunc(Math.random() * (max - min) + min);
+    }
+
+
+
+    /*Contrato: exist: (listade numeros), number -> number
+    Proposito: Determina si el valor "x" existe en la lista ordenada, de ser asi devuelve la 
+    posicion n en la que se encuentra respecto a la lista, en caso contrario devuelve el tamaño 
+    de la lista +1.
+    Ejemplos:
+    exist([1,2,3,5],3) -> 2
+    exist([30,40,100],10) -> 4
+    exist([1,100,100.1,100.2],100.1) -> 2
+    */
+    function exist(lista, x) {
+      if (x == first(lista)) {
+        return 0;
+      }
+      else if (isEmpty(lista)) {
+        return 1;
+      }
+      else {
+        return 1 + exist(rest(lista), x);
+      }
+    }
+
+
+    /*Contrato: sortasc: (listade numeros) -> (listade numeros)
+    Proposito: Orderna una lista desordenada de forma descendente.
+    Ejemplos:
+    sortasc([-1000,0,-1,-10]) -> [0, -1000, -10, -1, 0]
+    sortasc([-1,10,0,100,1]) -> [100, 10, 1, 0, -1]
+    sortasc([5,5,5,1,2,0]) -> [5, 5, 5, 2, 1, 0]
+    */
+    function sortasc(lista) {
+      if (isEmpty(lista)) {
+        return [];
+      }
+      else {
+        return cons(mayorL(lista), sortasc(delet(lista, exist(lista, mayorL(lista)))));
+      }
+    }
+
+    /*Contrato: lookupanyx: list,number -> number
+    Proposito: La funcion determina si el valor "x" existe en la lista y devuelve su posicion, 
+    en caso contrario imprime el valor -1.
+    Ejemplos:
+    lookupanyx([4,2,10,5],5) -> 3
+    lookupanyx([20],10) -> -1
+    lookupanyx([],1) -> -1
+    */
+    function lookupanyx (lista,x){
+      if (length(lista)+1 != exist(lista,x)){
+        return exist(lista,x);
+      }
+      else{
+        return -1;
+      }
+    }
+
+    
+    /*Contrato: almacenadorScore: (listade numeros), number -> (listade numeros)
+    Proposito: La funcion se encarga de agregar un valor "x" a una lista ordenada (forma ascendente) siempre y cuando 
+    esté sea mayor al valor minimo de dicha lista, y de ser asi se elimina el valor minimo de la lista. En caso contrario
+    devuelve la lista de entrada.
+    Contexto: Es la funcion encargada de almacenar los scores maximos hechos por el pacman.
+    Ejemplos:
+    almacenadorScore([1,2,3,5],3) -> [2, 3, 3, 5]
+    almacenadorScore([30,40,100],10) -> [30, 40, 100]
+    almacenadorScore([1,100,100.1,100.2],100.2) -> [100, 100.1, 100.2, 100.2]
+    */
+    function almacenadorScore(list, x){
+      if(menor(list)<x){
+        const newLista= insertInOrder(list, x)
+        const newLista2= sortasc(newLista)
+        return delet(newLista2, lookupanyx(newLista2, menor(newLista2)))
+      }
+      else{
+        return list
+      }
+    }
+
+
+    /*Contrato: pintarScore: (listade numeros) -> imagen
+    Proposito: La funcion se encarga de pintar los scores maximos de pacman.
+    */
+    function pintarScore(list) {
+      function pintar(list, acum) {
+        if (length(list) > 0) {
+          if (acum == 1) {
+            processing.textFont(font, 65)
+            processing.fill(250, 250, 250);
+            processing.text(first(list), 400, 220 * (acum))
+            pintar(rest(list), acum + 1)
+          }
+          else {
+            processing.textFont(font, 63)
+            processing.fill(250, 250, 250);
+            processing.text(first(list), 400, 220 + (65 * (acum - 1)))
+            pintar(rest(list), acum + 1)
+          }
+        }
+      }
+      return pintar(list, 1)
+    }
+
+
+
+    /*Contrato: gano: world -> str
+    Proposito: La funcion se encarga de determinar si el pacman gana o no el juego. Las condiciones 
+    para ganar es que la funcion retorne "SI" lo cual ocurre unicamente si las listas de las galletas 
+    estan vacias y el pacman esta en la posicion x = 13 y = 4. En caso contrario, la funcion siempre 
+    retorna "NO".
+    Contexto: Es la funcion encargada de determinar si el pacman gana el juego.
+    */
+    function gano(world){
+      if ((length(world.cookies[0])== 0)&&(mapa[world.pacman.y + 1][world.pacman.x]==4)){
+        return "SI"
+      }
+      else{
+        return "NO"
+      }
+    }
+
+
+
+    /*Contrato: sentido: world.fantasma#, world, startGhost.#.sentido -> str
+    Proposito: La funcion se encarga de dar un sentido nuevo a los fantasmas, dependiendo del sentido inicial y 
+    de la posicion  siguiente en el mapa (que a su vez depende del sentido inicial). Tambien si ocurre que el pacman se 
+    encuentra en la misma posicion del fantasma, otorgara el sentido start que le corresponda.
+    Contexto: Es la funcion encargada de determinar el sentido que debe seguir el fantasma dependiendo si llega
+    a una esquina del mapa o no. Tambien se encarga de "respawnear" el sentido del fantasma si el pacman se lo come.
+    */
+    function sentido(fantasma, world, sentidoInicial) {
+      const estado = fantasma.sentido
+      const x = fantasma.x
+      const y = fantasma.y
+      if ((x==world.pacman.x)&&(y==world.pacman.y)&&(world.pacman.poder == "SI")){
+        return sentidoInicial
+      }
+      else if (world.time>10){
+        const random1 = numberRandom(0, 2)
+        if (estado == "LEFT") {
+          if(mapa[y][x - 1]==4){
+            return "UP"
+          }
+          if(mapa[y][x - 1]==6){
+            return "UP"
+          }
+          if ((mapa[y][x - 1] == "A")) {
+            return "UP"
+          }
+          else if (mapa[y][x - 1] == "C") {
+            return "DOWN"
+          }
+          else if (mapa[y][x - 1] == "E") {
+            if (random1 == 0) {
+              return "UP"
+            }
+            else {
+              return "DOWN"
+            }
+          }
+          else if (mapa[y][x - 1] == "G") {
+            if (random1 == 0) {
+              return "UP"
+            }
+            else {
+              return estado
+            }
+          }
+          else if (mapa[y][x - 1] == "H") {
+            if (random1 == 0) {
+              return "DOWN"
+            }
+            else {
+              return estado
+            }
+          }
+          else if (mapa[y][x - 1] == "J") {
+            return "RIGHT"
+          }
+          else {
+            return estado
+          }
+        }
+        else if (estado == "RIGHT") {
+          if(mapa[y][x + 1]==4){
+            return "UP"
+          }
+          if(mapa[y][x + 1]==6){
+            return "UP"
+          }        
+          else if (mapa[y][x + 1] == "B") {
+            return "UP"
+          }
+          else if (mapa[y][x + 1] == "D") {
+            return "DOWN"
+          }
+          else if (mapa[y][x + 1] == "F") {
+            if (random1 == 0) {
+              return "UP"
+            }
+            else {
+              return "DOWN"
+            }
+          }
+          else if (mapa[y][x + 1] == "G") {
+            if (random1 == 0) {
+              return "UP"
+            }
+            else {
+              return estado
+            }
+          }
+          else if (mapa[y][x + 1] == "H") {
+            if (random1 == 0) {
+              return "DOWN"
+            }
+            else {
+              return estado
+            }
+          }
+          else if (mapa[y][x + 1] == "I") {
+            return "LEFT"
+          }
+          else {
+            return estado
+          }
+        }
+        else if (estado == "DOWN") {
+          if (mapa[y + 1][x] == "A") {
+            return "RIGHT"
+          }
+          else if (mapa[y + 1][x] == "B") {
+            return "LEFT"
+          }
+          else if (mapa[y + 1][x] == "E") {
+            if (random1 == 0) {
+              return "RIGHT"
+            }
+            else {
+              return estado
+            }
+          }
+          else if (mapa[y + 1][x] == "F") {
+            if (random1 == 0) {
+              return "LEFT"
+            }
+            else {
+              return estado
+            }
+          }
+          else if (mapa[y + 1][x] == "G") {
+            if (random1 == 0) {
+              return "RIGHT"
+            }
+            else {
+              return "LEFT"
+            }
+          }
+          else {
+            return estado
+          }
+        }
+        else if (estado == "UP") {
+          if (mapa[y - 1][x] == 7){
+            if (random1 == 0) {
+              return "RIGHT"
+            }
+            else {
+              return "LEFT"
+            }
+          }
+          if (mapa[y - 1][x] == "C") {
+            return "RIGHT"
+          }
+          else if (mapa[y - 1][x] == "D") {
+            return "LEFT"
+          }
+          else if (mapa[y - 1][x] == "E") {
+            if (random1 == 0) {
+              return "RIGHT"
+            }
+            else {
+              return estado
+            }
+          }
+          else if (mapa[y - 1][x] == "F") {
+            if (random1 == 0) {
+              return "LEFT"
+            }
+            else {
+              return estado
+            }
+          }
+          else if (mapa[y - 1][x] == "H") {
+            if (random1 == 0) {
+              return "RIGHT"
+            }
+            else {
+              return "LEFT"
+            }
+          }
+          else {
+            return estado
+          }
+        }
+      }
+      else{
+        return estado
+      }
+    }
+    
+
+
+    /*Contrato: sentidoGuardian: world.fantasma5, world, startGhost.cinco.sentido -> str
+    Proposito: La funcion se encarga de dar un sentido nuevo al fantasma guardian, dependiendo de su sentido inicial, 
+    la posicion  siguiente en el mapa (que a su vez depende del sentido inicial) y si ocurre que el pacman se 
+    encuentra en la misma posicion del fantasma, otorgara el sentido start que le corresponde.
+    Contexto: Es la funcion encargada de determinar el sentido que debe seguir el fantasma guardin dependiendo si llega
+    a una esquina del cuadro del spawn de los fantasmas o no. Tambien se encarga de "respawnear" el sentido del fantasma si el 
+    pacman se lo come.
+    */
+    function sentidoGuardian(fantasma, world, sentidoInicial){
+      const estado = fantasma.sentido
+      const x = fantasma.x
+      const y = fantasma.y
+      if ((x==world.pacman.x)&&(y==world.pacman.y)){
+        return sentidoInicial
+      }
+      if (estado=="RIGHT"){
+        if (mapa[y][x + 1]=="H"){
+          return "DOWN"
+        }
+        else{
+          return estado
+        }
+      }
+      else if (estado=="LEFT"){
+        if (mapa[y][x - 1]=="G"){
+          return "UP"
+        }
+        else{
+          return estado
+        }
+      }
+      else if (estado=="UP"){
+        if (mapa[y - 1][x]=="H"){
+          return "RIGHT"
+        }
+        else{
+          return estado
+        }
+      }
+      else if (estado=="DOWN"){
+        if (mapa[y + 1][x]=="G"){
+          return "LEFT"
+        }
+        else{
+          return estado
+        }
+      }
+    }
+
+
+
+    /*Contrato: posicionX: world.fantasma#, world, startGhost.#.x -> number
+    Proposito: La funcion se encarga de devolver una posicion "x" para el fantasma, dependiendo el sentido que este lleve,
+    y la posicion actual, sumando o restando 1 o simplemente devolviendo el valor original de x.
+    Contexto: Es la funcion encargada de determinar la nueva posicion x del fantasma.
+    */    
+    function posicionX(fantasma, world, xInicial) {
+      const estado = fantasma.sentido
+      const x = fantasma.x
+      const y = fantasma.y
+      if(world.pacman.poder == "SI"){
+        if(world.pacman.x==x&&world.pacman.y==y){
+          return xInicial
+        }
+        else if ((estado == "RIGHT") && (mapa[y][x + 1] != 1)) {
+          return x + 1
+        }
+        else if ((estado == "LEFT") && (mapa[y][x - 1] != 1)) {
+          return x - 1
+        }
+        else {
+          return x
+        }
+      }
+      else if (world.time>10){
+        if ((estado == "RIGHT") && (mapa[y][x + 1] != 1)) {
+          return x + 1
+        }
+        else if ((estado == "LEFT") && (mapa[y][x - 1] != 1)) {
+          return x - 1
+        }
+        else {
+          return x
+        }
+      }
+      else{
+        return x
+      }
+    }
+
+
+
+    /*Contrato: posicionY: world.fantasma#, world, startGhost.#.y -> number
+    Proposito: La funcion se encarga de devolver una posicion "y" para el fantasma #, dependiendo el sentido que este lleve,
+    y la posicion actual, sumando o restando 1 o simplemente devolviendo el valor original de y.
+    Contexto: Es la funcion encargada de determinar la nueva posicion y del fantasma.
+    */  
+    function posicionY(fantasma, world, yInicial) {
+      const sentido = fantasma.sentido
+      const x = fantasma.x
+      const y = fantasma.y
+      if(poder(world) == "SI"){
+        if(world.pacman.x==x&&world.pacman.y==y){
+          return yInicial
+        }
+        else if ((sentido == "UP") && (mapa[y - 1][x] != 1)) {
+          return y - 1
+        }
+        else if ((sentido == "DOWN") && (mapa[y + 1][x] != 1)) {
+          return y + 1
+        }
+        else {
+          return y
+        }
+      }
+      else if (world.time>10){
+        if ((sentido == "UP") && (mapa[y - 1][x] != 1)) {
+          return y - 1
+        }
+        else if ((sentido == "DOWN") && (mapa[y + 1][x] != 1)) {
+          return y + 1
+        }
+        else {
+          return y
+        }
+      }
+      else{
+        return y
+      }
+    }
+
+
+
+    /*Contrato: pintarFantasma: number, number, str, number, world -> imagen
+    Proposito: La funcion se encarga de pintar los fantasmas de pacman dependiendo la dificultad y si 
+    el pacman tiene el poder.
+    */
+
+    /*function audioReprod(world){
+      if(world.audioVar == "SI"){
+        return  audio1.play();
+      }
+    }
+*/
+
+    function pintarFantasma(x, y, sentido, tipo, world) {
+      if ((world.pacman.poder == "SI")&&(world.dificultad=="NORMAL")){
+        if (tipo==1){
+          processing.image(fantasmaA1s, x * SIZE, y * SIZE, SIZE, SIZE)
+        }
+        else if (tipo==2){
+          if (sentido =="LEFT"){
+            processing.image(fantasmaB1s, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else if (sentido =="RIGHT"){
+            processing.image(fantasmaB2s, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else{
+            processing.image(fantasmaB1s, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+        }
+        else if (tipo==3){
+          if (sentido =="LEFT"){
+            processing.image(fantasmaD1s, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else if (sentido =="RIGHT"){
+            processing.image(fantasmaD2s, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else{
+            processing.image(fantasmaD1s, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+        }
+      }
+      else if (world.dificultad=="NORMAL"){
+        if (tipo==1){
+          processing.image(fantasmaA1, x * SIZE, y * SIZE, SIZE, SIZE)
+        }
+        else if (tipo==2){
+          if (sentido =="LEFT"){
+            processing.image(fantasmaB1, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else if (sentido =="RIGHT"){
+            processing.image(fantasmaB2, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else{
+            processing.image(fantasmaB1, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+        }
+        else if (tipo==3){
+          if (sentido =="LEFT"){
+            processing.image(fantasmaD1, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else if (sentido =="RIGHT"){
+            processing.image(fantasmaD2, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else{
+            processing.image(fantasmaD1, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+        }
+      }
+      if ((world.pacman.poder == "SI")&&(world.dificultad=="DIFICIL")){
+        if (sentido =="LEFT"){
+          processing.image(cat, x * SIZE, y * SIZE, SIZE, SIZE)
+        }
+        else if (sentido =="RIGHT"){
+          processing.image(cat2, x * SIZE, y * SIZE, SIZE, SIZE)
+        }
+        else{
+          processing.image(cat, x * SIZE, y * SIZE, SIZE, SIZE)
+        }
+      }
+      else if (world.dificultad=="DIFICIL"){
+        if (tipo==1){
+          processing.image(fantasmaA11, x * SIZE, y * SIZE, SIZE, SIZE)
+        }
+        else if (tipo==2){
+          if (sentido =="LEFT"){
+            processing.image(fantasmaB11, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else if (sentido =="RIGHT"){
+            processing.image(fantasmaB22, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else{
+            processing.image(fantasmaB11, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+        }
+        else if (tipo==3){
+          if (sentido =="LEFT"){
+            processing.image(fantasmaD11, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else if (sentido =="RIGHT"){
+            processing.image(fantasmaD22, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else{
+            processing.image(fantasmaD11, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+        }
+        else if (tipo==4){
+          if (sentido =="LEFT"){
+            processing.image(fantasmaE1, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else if (sentido =="RIGHT"){
+            processing.image(fantasmaE2, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else{
+            processing.image(fantasmaE1, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+        }
+        else if (tipo==5){
+          if (sentido =="LEFT"){
+            processing.image(fantasmaC1, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else if (sentido =="RIGHT"){
+            processing.image(fantasmaC2, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else if (sentido =="UP"){
+            processing.image(fantasmaC3, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+          else if (sentido =="DOWN"){
+            processing.image(fantasmaC4, x * SIZE, y * SIZE, SIZE, SIZE)
+          }
+        }
+      }
+    }
+  
+
+
+    /*Contrato: elPacmanEstaVivo: world -> str
+    Proposito: La funcion se encarga de determinar si el pacman esta vivo. La funcion retornara "SI" siempre y cuando
+    el pacman este en una posicion xy diferente a la de un fantasma o si estan el misma posicion que el pacman tenga
+    el poder especial activado, en ese caso contrario retorna "NO" lo que determina que el pacman pierde el juego 
+    automaticamente.
+    */
+    function elPacmanEstaVivo(world){
+      if (poder(world)=="NO"){
+        if ((world.fantasma.x==world.pacman.x)&&(world.fantasma.y==world.pacman.y)){
+          return "NO"
+        }
+        else if ((world.fantasma2.x==world.pacman.x)&&(world.fantasma2.y==world.pacman.y)){
+          return "NO"
+        }
+        else if ((world.fantasma3.x==world.pacman.x)&&(world.fantasma3.y==world.pacman.y)){
+          return "NO"
+        }
+        else if (world.dificultad=="DIFICIL"){
+          if ((world.fantasma4.x==world.pacman.x)&&(world.fantasma4.y==world.pacman.y)){
+            return "NO"
+          }
+          else if ((world.fantasma5.x==world.pacman.x)&&(world.fantasma5.y==world.pacman.y)){
+            return "NO"
+          }
+          else{
+            return "SI"
+          }     
+        }
+        else{
+          return "SI"
+        }
+      }
+      else{
+        return "SI"
+      }
+    }
+
+
+
+    /*Contrato: poder: world -> str
+    Proposito: La funcion se encarga de determinar si pacman tiene el poder especial. Lo cual ocurre siempre y
+    cuando pacman haya estado en la misma posicion xy de una galleta especial de ser asi la funcion retorna "SI", 
+    y el efecto dura un tiempo determinado, cuando dicho tiempo llegue a su valor maximo automaticamente la funcion
+    retornara "NO". Asi mismo si el pacman no se ha encontrado en la misma posicion xy de una galleta especial, se 
+    retornara "NO" hasta que ocurra lo dicho anteriormente.
+    */
+    function poder(world){
+      if (verificadorPosicion(world.specialCookies, world.pacman.x, world.pacman.y)==true){
+        return "SI"
+      }
+      else if ((world.pacman.poder == "SI")&&(tiempoInterno(world)<50)){
+        return "SI"
+      }
+      else{
+        return "NO"
+      }
+    }
+
+
+
+    /*Contrato: tiempoInterno: world -> number
+    Proposito: La funcion es la encargada de dar el tiempo limite para el poder de pacman.
+    */
+    function tiempoInterno(world){
+      if (world.pacman.poder=="SI"){
+        return world.pacman.tiempoInterno + 1
+      }
+      else{
+        return world.pacman.tiempoInterno - world.pacman.tiempoInterno
+      }
+    }
+
+    processing.setup = function () {
+      processing.frameRate(4.5);
+      processing.size(WIDTH, HEIGHT);
+      audioStart = new Audio('sounds/start.wav')
+      audio1 = new Audio('sounds/menus.wav'); 
+      audioB = new Audio('sounds/menusB.wav'); 
+      audioPac = new Audio('sounds/Pac.wav');
+      lose = new Audio('sounds/risa.mp3');
+      audioFondo = new Audio("sounds/Amnesia.mp3")
+      audioDificil = new Audio("sounds/B.Y.O.B..mp3")
+      audioFacil = new Audio("sounds/Facilito.mp3")
+      audioWin = new Audio("sounds/Win.mp3")
+      wall1 = processing.loadImage("images/wall.png")
+      fire1 = processing.loadImage("images/fire1.png")
+      fire2 = processing.loadImage("images/fire2.png")
+      fire3 = processing.loadImage("images/fire3.png")
+      doorClose = processing.loadImage("images/doorClose.png")
+      doorOpen = processing.loadImage("images/doorOpen.png")
+      Inicio = processing.loadImage("images/menus/startMenu.png")
+      Inicio2 = processing.loadImage("images/menus/startMenu2.png")
+      menu0 = processing.loadImage("images/menus/firstMenu0.png")
+      menu1 = processing.loadImage("images/menus/firstMenu1.png")
+      menu2 = processing.loadImage("images/menus/firstMenu2.png")
+      menu3 = processing.loadImage("images/menus/firstMenu3.png")
+      menu4 = processing.loadImage("images/menus/firstMenu4.png")
+      menu5 = processing.loadImage("images/menus/firstMenu5.png")
+      creditos = processing.loadImage("images/menus/creditos.png")
+      ranking = processing.loadImage("images/menus/ranking.png")
+      controls = processing.loadImage("images/menus/inControles.png")
+      theEnd = processing.loadImage("images/menus/gameOver.png")
+      theEnd2 = processing.loadImage("images/menus/gameOver2.png")
+      victory = processing.loadImage("images/menus/win.png")
+      victory2 = processing.loadImage("images/menus/win2.png")
+      normalDificl = processing.loadImage("images/menus/normalDificil.png")
+      normal = processing.loadImage("images/menus/normal.png")
+      dificl = processing.loadImage("images/menus/dificil.png")
+      pacmanLeft1 = processing.loadImage("images/Pacman/PACMAN 1.png")
+      pacmanLeft3 = processing.loadImage("images/Pacman/PACMAN 3.png")
+      pacmanUp1 = processing.loadImage("images/Pacman/PACMAN UP 1.png")
+      pacmanUp3 = processing.loadImage("images/Pacman/PACMAN UP 3.png")
+      pacmanDown1 = processing.loadImage("images/Pacman/PACMAN DOWN 1.png")
+      pacmanDown3 = processing.loadImage("images/Pacman/PACMAN DOWN 3.png")
+      pacmanRight1 = processing.loadImage("images/Pacman/PACMAN RIGHT 1.png")
+      pacmanRight3 = processing.loadImage("images/Pacman/PACMAN RIGHT 3.png")
+      cat = processing.loadImage("images/Miau.png")
+      cat2 = processing.loadImage("images/Miau2.png")
+      fantasmaA1 = processing.loadImage("images/Fantasmita A/fantasmita A1.png")
+      fantasmaA1s = processing.loadImage("images/Fantasmita A/fantasmita A1s.png")
+      fantasmaA11 = processing.loadImage("images/Fantasmita A/fantasmita A11.png")
+      fantasmaB1 = processing.loadImage("images/Fantasmita B/fantasmita B2.png")
+      fantasmaB2 = processing.loadImage("images/Fantasmita B/fantasmita B3.png")
+      fantasmaB1s = processing.loadImage("images/Fantasmita B/fantasmita B2s.png")
+      fantasmaB2s = processing.loadImage("images/Fantasmita B/fantasmita B3s.png")
+      fantasmaB11 = processing.loadImage("images/Fantasmita B/fantasmita B22.png")
+      fantasmaB22 = processing.loadImage("images/Fantasmita B/fantasmita B33.png")
+      fantasmaC1 = processing.loadImage("images/Fantasmita C/fantasmita C1.png")
+      fantasmaC2 = processing.loadImage("images/Fantasmita C/fantasmita C2.png")
+      fantasmaC3 = processing.loadImage("images/Fantasmita C/fantasmita C3.png")
+      fantasmaC4 = processing.loadImage("images/Fantasmita C/fantasmita C4.png")
+      fantasmaD1 = processing.loadImage("images/Fantasmita D/fantasmita D1.png")
+      fantasmaD2 = processing.loadImage("images/Fantasmita D/fantasmita D2.png")
+      fantasmaD1s = processing.loadImage("images/Fantasmita D/fantasmita D1s.png")
+      fantasmaD2s = processing.loadImage("images/Fantasmita D/fantasmita D2s.png")
+      fantasmaD11 = processing.loadImage("images/Fantasmita D/fantasmita D11.png")
+      fantasmaD22 = processing.loadImage("images/Fantasmita D/fantasmita D22.png")
+      fantasmaE1 = processing.loadImage("images/Fantasmita E/fantasmita E1.png")
+      fantasmaE2 = processing.loadImage("images/Fantasmita E/fantasmita E2.png")
+      font = processing.loadFont("images/Scala_39567.ttf")
+      processing.state = { 
+        time: 0,
+        juego: 0,
+        scoreJuego:0,
+        Maxi: [0, 0, 0, 0, 0]}
+    }
+
+    processing.drawGame = function (world) {
+      processing.background(0, 0, 0)
+      if (world.juego!="JUGAR"){
+        pintarMenu(world)
+      }
+      else if (world.juego == "JUGAR") {
+        pintarMapa2(mapa, world)
+        processing.fill(0, 0, 0);
+        processing.rect(600, 0, 150, 45)
+        processing.fill(250, 250, 250);
+        processing.textFont(font, 45)
+        processing.text(world.scoreJuego, 610, 40)
+        pintarGalletas(world.cookies, "NORMAL")
+        pintarGalletas(world.specialCookies, "ESPECIALES")
+        pintarFantasma(world.fantasma.x, world.fantasma.y, world.fantasma.sentido, 1, world)
+        pintarFantasma(world.fantasma2.x, world.fantasma2.y, world.fantasma2.sentido, 2, world)
+        pintarFantasma(world.fantasma3.x, world.fantasma3.y, world.fantasma3.sentido, 3, world)
+        if (world.dificultad == "DIFICIL"){
+          fuego(fire, world)
+          pintarFantasma(world.fantasma4.x, world.fantasma4.y, world.fantasma4.sentido, 4, world)
+          pintarFantasma(world.fantasma5.x, world.fantasma5.y, world.fantasma5.sentido, 5, world)
+        }
+        pintarPacman(world)
+        }
+      }
+    
+    processing.onTic = function (world) {
+      if (world.juego == "JUGAR"){
+        audioFondo.load()
+        if(world.vida=="NO"){
+          audioDificil.load()
+          audioFacil.load()
+          lose.play()
+          return make(world, {
+            time: world.time + 1, 
+            scoreJuego: world.scoreJuego, 
+            Maxi: almacenadorScore(world.Maxi, world.scoreJuego), 
+            juego: "MUERTE", 
+            dificultad: world.dificultad
+            }
+          )
+        }
+        else if(world.gano == "SI"){
+          audioDificil.load()
+          audioFacil.load() 
+          audioWin.play()
+          return make(world, {
+            time: world.time + 1,
+            scoreJuego: world.scoreJuego, 
+            Maxi: almacenadorScore(world.Maxi, world.scoreJuego), 
+            juego: "VICTORIA", 
+            dificultad: world.dificultad
+          })
+        }
+        else if (world.dificultad == "DIFICIL"){
+          audioDificil.play()
+          if (mapa[world.pacman.y][world.pacman.x] != 1){
+            if ((world.pacman.sentido == "UP") && (mapa[world.pacman.y - 1][world.pacman.x] != 1)) {
+              return make(world, { 
+                time: world.time + 1, 
+                pacman: { x: world.pacman.x, y: world.pacman.y - 1, sentido: "UP", poder: poder(world), tiempoInterno: tiempoInterno(world)},
+                juego: world.juego,
+                vida: elPacmanEstaVivo(world), 
+                cookies: nuevasGalletas(world.cookies, world.pacman.x, world.pacman.y),
+                specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x, world.pacman.y), 
+                scoreJuego: world.scoreJuego + score(world, world.pacman.x, world.pacman.y - 1), 
+                Maxi: world.Maxi,
+                dificultad: world.dificultad,
+                gano: gano(world), 
+                fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) },
+                fantasma4: { 
+                  x: posicionX(world.fantasma4, world, startGhost.cuatro.x), 
+                  y: posicionY(world.fantasma4, world, startGhost.cuatro.y), 
+                  sentido: sentido(world.fantasma4, world, startGhost.cuatro.sentido) },
+                fantasma5: { 
+                  x: posicionX(world.fantasma5, world, startGhost.cinco.x), 
+                  y: posicionY(world.fantasma5, world, startGhost.cinco.y), 
+                  sentido: sentidoGuardian(world.fantasma5, world, startGhost.cinco.sentido)} })
+            }
+            else if ((world.pacman.sentido == "DOWN") && (mapa[world.pacman.y + 1][world.pacman.x] != 1)) {
+              return make(world, { 
+                time: world.time + 1, 
+                pacman: { x: world.pacman.x, y: world.pacman.y + 1, sentido: "DOWN", poder: poder(world) , tiempoInterno: tiempoInterno(world)}, 
+                juego: world.juego, 
+                cookies: nuevasGalletas(world.cookies, world.pacman.x, world.pacman.y),
+                specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x, world.pacman.y),
+                vida: elPacmanEstaVivo(world),  
+                scoreJuego: world.scoreJuego + score(world, world.pacman.x, world.pacman.y + 1), 
+                Maxi: world.Maxi,
+                dificultad: world.dificultad,
+                gano: gano(world), 
+                fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) },
+                fantasma4: { 
+                  x: posicionX(world.fantasma4, world, startGhost.cuatro.x), 
+                  y: posicionY(world.fantasma4, world, startGhost.cuatro.y), 
+                  sentido: sentido(world.fantasma4, world, startGhost.cuatro.sentido) },
+                fantasma5: { 
+                  x: posicionX(world.fantasma5, world, startGhost.cinco.x), 
+                  y: posicionY(world.fantasma5, world, startGhost.cinco.y), 
+                  sentido: sentidoGuardian(world.fantasma5, world, startGhost.cinco.sentido)} })
+            }
+            else if ((world.pacman.sentido == "LEFT") && (mapa[world.pacman.y][world.pacman.x - 1] != 1)) {
+              if (mapa[world.pacman.y][world.pacman.x] == 3) {
+                return make(world, { 
+                  time: world.time + 1, 
+                  pacman: { x: world.pacman.x + 26, y: world.pacman.y, sentido: "LEFT", poder: poder(world) , tiempoInterno: tiempoInterno(world)}, 
+                  juego: world.juego, 
+                  cookies: nuevasGalletas(world.cookies, world.pacman.x , world.pacman.y),
+                  specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x , world.pacman.y),  
+                  scoreJuego: world.scoreJuego, 
+                  Maxi: world.Maxi,
+                  vida: elPacmanEstaVivo(world),
+                  dificultad: world.dificultad,
+                  gano: gano(world), 
+                  fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) },
+                fantasma4: { 
+                  x: posicionX(world.fantasma4, world, startGhost.cuatro.x), 
+                  y: posicionY(world.fantasma4, world, startGhost.cuatro.y), 
+                  sentido: sentido(world.fantasma4, world, startGhost.cuatro.sentido) },
+                fantasma5: { 
+                  x: posicionX(world.fantasma5, world, startGhost.cinco.x), 
+                  y: posicionY(world.fantasma5, world, startGhost.cinco.y), 
+                  sentido: sentidoGuardian(world.fantasma5, world, startGhost.cinco.sentido)} })
+              }
+              else {
+                return make(world, { 
+                  time: world.time + 1, 
+                  pacman: { x: world.pacman.x - 1, y: world.pacman.y, sentido: "LEFT", poder: poder(world) , tiempoInterno: tiempoInterno(world)}, 
+                  juego: world.juego, 
+                  cookies: nuevasGalletas(world.cookies, world.pacman.x, world.pacman.y),
+                  specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x , world.pacman.y),  
+                  scoreJuego: world.scoreJuego + score(world, world.pacman.x - 1, world.pacman.y), 
+                  Maxi: world.Maxi,
+                  vida: elPacmanEstaVivo(world),
+                  dificultad: world.dificultad,
+                  gano: gano(world), 
+                  fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) },
+                fantasma4: { 
+                  x: posicionX(world.fantasma4, world, startGhost.cuatro.x), 
+                  y: posicionY(world.fantasma4, world, startGhost.cuatro.y), 
+                  sentido: sentido(world.fantasma4, world, startGhost.cuatro.sentido) },
+                fantasma5: { 
+                  x: posicionX(world.fantasma5, world, startGhost.cinco.x), 
+                  y: posicionY(world.fantasma5, world, startGhost.cinco.y), 
+                  sentido: sentidoGuardian(world.fantasma5, world, startGhost.cinco.sentido)}
+                  }
+                )
+              }
+            }     
+            else if ((world.pacman.sentido == "RIGHT") && (mapa[world.pacman.y][world.pacman.x + 1] != 1)) {
+              if (mapa[world.pacman.y][world.pacman.x] == 2) {
+                return make(world, { 
+                  time: world.time + 1, 
+                  pacman: { x: world.pacman.x - 26, y: world.pacman.y, sentido: "RIGHT", poder: poder(world) , tiempoInterno: tiempoInterno(world)}, 
+                  juego: world.juego, 
+                  cookies: nuevasGalletas(world.cookies, world.pacman.x , world.pacman.y),
+                  specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x , world.pacman.y), 
+                  scoreJuego: world.scoreJuego, 
+                  Maxi: world.Maxi,
+                  vida: elPacmanEstaVivo(world),
+                  dificultad: world.dificultad,
+                  gano: gano(world), 
+                  fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) },
+                fantasma4: { 
+                  x: posicionX(world.fantasma4, world, startGhost.cuatro.x), 
+                  y: posicionY(world.fantasma4, world, startGhost.cuatro.y), 
+                  sentido: sentido(world.fantasma4, world, startGhost.cuatro.sentido) },
+                fantasma5: { 
+                  x: posicionX(world.fantasma5, world, startGhost.cinco.x), 
+                  y: posicionY(world.fantasma5, world, startGhost.cinco.y), 
+                  sentido: sentidoGuardian(world.fantasma5, world, startGhost.cinco.sentido)}})
+              }
+              else {
+                return make(world, { 
+                  time: world.time + 1, 
+                  pacman: { x: world.pacman.x + 1, y: world.pacman.y, sentido: "RIGHT", poder: poder(world) , tiempoInterno: tiempoInterno(world)}, 
+                  juego: world.juego, 
+                  cookies: nuevasGalletas(world.cookies, world.pacman.x , world.pacman.y),
+                  specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x , world.pacman.y), 
+                  scoreJuego: world.scoreJuego + score(world, world.pacman.x + 1, world.pacman.y, 1), 
+                  Maxi: world.Maxi,
+                  vida: elPacmanEstaVivo(world),
+                  dificultad: world.dificultad,
+                  gano: gano(world), 
+                  fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) },
+                fantasma4: { 
+                  x: posicionX(world.fantasma4, world, startGhost.cuatro.x), 
+                  y: posicionY(world.fantasma4, world, startGhost.cuatro.y), 
+                  sentido: sentido(world.fantasma4, world, startGhost.cuatro.sentido) },
+                fantasma5: { 
+                  x: posicionX(world.fantasma5, world, startGhost.cinco.x), 
+                  y: posicionY(world.fantasma5, world, startGhost.cinco.y), 
+                  sentido: sentidoGuardian(world.fantasma5, world, startGhost.cinco.sentido)}
+                  }
+                )
+              }
+            }
+            else {
+              return make(world, {
+                time: world.time + 1, 
+                pacman: { x: world.pacman.x, y: world.pacman.y, sentido: world.pacman.sentido , poder: poder(world) , tiempoInterno: tiempoInterno(world)}, 
+                juego: world.juego, 
+                cookies: nuevasGalletas(world.cookies, world.pacman.x, world.pacman.y),
+                specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x, world.pacman.y), 
+                scoreJuego: world.scoreJuego, 
+                Maxi: world.Maxi,
+                vida: elPacmanEstaVivo(world),
+                dificultad: world.dificultad,
+                gano: gano(world), 
+                fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) },
+                fantasma4: { 
+                  x: posicionX(world.fantasma4, world, startGhost.cuatro.x), 
+                  y: posicionY(world.fantasma4, world, startGhost.cuatro.y), 
+                  sentido: sentido(world.fantasma4, world, startGhost.cuatro.sentido) },
+                fantasma5: { 
+                  x: posicionX(world.fantasma5, world, startGhost.cinco.x), 
+                  y: posicionY(world.fantasma5, world, startGhost.cinco.y), 
+                  sentido: sentidoGuardian(world.fantasma5, world, startGhost.cinco.sentido)}    
+                  }
+                )
+            }
+          }
+        }
+        else if(world.dificultad == "NORMAL"){
+          audioFacil.play()
+          if (mapa[world.pacman.y][world.pacman.x] != 1){
+            if ((world.pacman.sentido == "UP") && (mapa[world.pacman.y - 1][world.pacman.x] != 1)) {
+              return make(world, { 
+                time: world.time + 1, 
+                pacman: { x: world.pacman.x, y: world.pacman.y - 1, sentido: "UP", poder: poder(world) , tiempoInterno: tiempoInterno(world) }, 
+                juego: world.juego,
+                vida: elPacmanEstaVivo(world), 
+                cookies: nuevasGalletas(world.cookies, world.pacman.x, world.pacman.y),
+                specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x, world.pacman.y), 
+                scoreJuego: world.scoreJuego + score(world, world.pacman.x, world.pacman.y - 1, - 1), 
+                Maxi: world.Maxi,
+                dificultad: world.dificultad,
+                gano: gano(world), 
+                fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) }  })
+            }
+            else if ((world.pacman.sentido == "DOWN") && (mapa[world.pacman.y + 1][world.pacman.x] != 1)) {
+              return make(world, { 
+                time: world.time + 1, 
+                pacman: { x: world.pacman.x, y: world.pacman.y + 1, sentido: "DOWN", poder: poder(world) , tiempoInterno: tiempoInterno(world) }, 
+                juego: world.juego, 
+                cookies: nuevasGalletas(world.cookies, world.pacman.x, world.pacman.y ),
+                specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x, world.pacman.y),
+                vida: elPacmanEstaVivo(world), 
+                scoreJuego: world.scoreJuego + score(world, world.pacman.x, world.pacman.y + 1, 1), 
+                Maxi: world.Maxi,
+                dificultad: world.dificultad,
+                gano: gano(world), 
+                fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) }})
+            }
+            else if ((world.pacman.sentido == "LEFT") && (mapa[world.pacman.y][world.pacman.x - 1] != 1)) {
+              if (mapa[world.pacman.y][world.pacman.x] == 3) {
+                return make(world, { 
+                  time: world.time + 1, 
+                  pacman: { x: world.pacman.x + 26, y: world.pacman.y, sentido: "LEFT", poder: poder(world) , tiempoInterno: tiempoInterno(world) }, 
+                  juego: world.juego, 
+                  cookies: nuevasGalletas(world.cookies, world.pacman.x , world.pacman.y),
+                  specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x, world.pacman.y),
+                  scoreJuego: world.scoreJuego,
+                  Maxi: world.Maxi,
+                  vida: elPacmanEstaVivo(world),
+                  dificultad: world.dificultad,
+                  gano: gano(world), 
+                  fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) } })
+              }
+              else {
+                return make(world, { 
+                  time: world.time + 1, 
+                  pacman: { x: world.pacman.x - 1, y: world.pacman.y, sentido: "LEFT", poder: poder(world) , tiempoInterno: tiempoInterno(world) }, 
+                  juego: world.juego, 
+                  cookies: nuevasGalletas(world.cookies, world.pacman.x , world.pacman.y),
+                  specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x, world.pacman.y),  
+                  scoreJuego: world.scoreJuego + score(world, world.pacman.x - 1, world.pacman.y, -1), 
+                  Maxi: world.Maxi,
+                  vida: elPacmanEstaVivo(world),
+                  dificultad: world.dificultad,
+                  gano: gano(world), 
+                  fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) }
+                  }
+                )
+              }
+            }     
+            else if ((world.pacman.sentido == "RIGHT") && (mapa[world.pacman.y][world.pacman.x + 1] != 1)) {
+              if (mapa[world.pacman.y][world.pacman.x] == 2) {
+                return make(world, { 
+                  time: world.time + 1, 
+                  pacman: { x: world.pacman.x - 26, y: world.pacman.y, sentido: "RIGHT", poder: poder(world) , tiempoInterno: tiempoInterno(world) }, 
+                  juego: world.juego, 
+                  cookies: nuevasGalletas(world.cookies, world.pacman.x , world.pacman.y),
+                  specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x, world.pacman.y), 
+                  scoreJuego: world.scoreJuego,
+                  Maxi: world.Maxi,
+                  vida: elPacmanEstaVivo(world),
+                  dificultad: world.dificultad,
+                  gano: gano(world), 
+                  fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) }  })
+              }
+              else {
+                return make(world, { 
+                  time: world.time + 1, 
+                  pacman: { x: world.pacman.x + 1, y: world.pacman.y, sentido: "RIGHT", poder: poder(world) , tiempoInterno: tiempoInterno(world) }, 
+                  juego: world.juego, 
+                  cookies: nuevasGalletas(world.cookies, world.pacman.x , world.pacman.y),
+                  specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x, world.pacman.y),  
+                  scoreJuego: world.scoreJuego + score(world, world.pacman.x + 1, world.pacman.y, 1), 
+                  Maxi: world.Maxi,
+                  vida: elPacmanEstaVivo(world),
+                  dificultad: world.dificultad,
+                  gano: gano(world), 
+                  fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) }
+                  }
+                )
+              }
+            }
+            else {
+              return make(world, {
+                time: world.time + 1, 
+                pacman: { x: world.pacman.x, y: world.pacman.y, sentido: world.pacman.sentido, poder: poder(world) , tiempoInterno: tiempoInterno(world) }, 
+                juego: world.juego, 
+                cookies: nuevasGalletas(world.cookies, world.pacman.x, world.pacman.y),
+                specialCookies: nuevasGalletas(world.specialCookies, world.pacman.x, world.pacman.y),  
+                scoreJuego: world.scoreJuego, 
+                Maxi: world.Maxi,
+                vida: elPacmanEstaVivo(world),
+                dificultad: world.dificultad,
+                gano: gano(world), 
+                fantasma: { 
+                  x: posicionX(world.fantasma, world, startGhost.uno.x), 
+                  y: posicionY(world.fantasma, world, startGhost.uno.y), 
+                  sentido: sentido(world.fantasma, world, startGhost.uno.sentido)},
+                fantasma2: { 
+                  x: posicionX(world.fantasma2, world, startGhost.dos.x), 
+                  y: posicionY(world.fantasma2, world, startGhost.dos.y), 
+                  sentido: sentido(world.fantasma2, world, startGhost.dos.sentido) },
+                fantasma3: { 
+                  x: posicionX(world.fantasma3, world, startGhost.tres.x), 
+                  y: posicionY(world.fantasma3, world, startGhost.tres.y), 
+                  sentido: sentido(world.fantasma3, world, startGhost.tres.sentido) }    
+                  }
+                )
+            }
+          }
+        }
+      }
+      else if (world.juego == "VICTORIA"){
+        return make(world, {time: world.time + 1})
+      }
+      else{
+        return make(world, {time: world.time + 1})
+      }
+    }
+
+    processing.onKeyEvent = function (world, keyCode) {
+      console.log(keyCode);
+      switch (keyCode) {
+        case processing.LEFT:
+          if (world.juego == "JUGAR") {
+            return make(world, { 
+              time: world.time, 
+              pacman: { x: world.pacman.x, y: world.pacman.y, sentido: "LEFT", poder: poder(world), tiempoInterno:  world.pacman.tiempoInterno  }, 
+              juego: world.juego, 
+              cookies: nuevasGalletas(world.cookies, world.pacman.x, world.pacman.y),
+              scoreJuego: world.scoreJuego,
+              vida: world.vida, 
+              Maxi: world.Maxi, 
+              fantasma: { 
+                x: world.fantasma.x, 
+                y: world.fantasma.y, 
+                sentido: world.fantasma.sentido }, 
+              fantasma2: { 
+                x: world.fantasma2.x, 
+                y: world.fantasma2.y, 
+                sentido: world.fantasma2.sentido }, 
+              fantasma3: { 
+                x: world.fantasma3.x, 
+                y: world.fantasma3.y, 
+                sentido: world.fantasma3.sentido }, 
+              fantasma4: { 
+                x: world.fantasma4.x, 
+                y: world.fantasma4.y, 
+                sentido: world.fantasma4.sentido }, 
+              fantasma5: { 
+                x: world.fantasma5.x, 
+                y: world.fantasma5.y, 
+                sentido: world.fantasma5.sentido }  })
+            break;
+          }
+          return make(world, {})
+        case processing.RIGHT:
+          if (world.juego == "JUGAR") {
+            return make(world, { 
+              time: world.time, 
+              pacman: { x: world.pacman.x, y: world.pacman.y, sentido: "RIGHT", poder: poder(world), tiempoInterno:  world.pacman.tiempoInterno  }, 
+              juego: world.juego, 
+              cookies: nuevasGalletas(world.cookies, world.pacman.x, world.pacman.y),
+              scoreJuego: world.scoreJuego, 
+              Maxi: world.Maxi,
+              vida: world.vida, 
+              fantasma: { 
+                x: world.fantasma.x, 
+                y: world.fantasma.y, 
+                sentido: world.fantasma.sentido }, 
+              fantasma2: { 
+                x: world.fantasma2.x, 
+                y: world.fantasma2.y, 
+                sentido: world.fantasma2.sentido }, 
+              fantasma3: { 
+                x: world.fantasma3.x, 
+                y: world.fantasma3.y, 
+                sentido: world.fantasma3.sentido }, 
+              fantasma4: { 
+                x: world.fantasma4.x, 
+                y: world.fantasma4.y, 
+                sentido: world.fantasma4.sentido }, 
+              fantasma5: { 
+                x: world.fantasma5.x, 
+                y: world.fantasma5.y, 
+                sentido: world.fantasma5.sentido }  })
+            break;
+          }
+          return make(world, {})
+        case processing.DOWN:
+          if (world.juego == "JUGAR") {
+            return make(world, { 
+              time: world.time, 
+              pacman: { x: world.pacman.x, y: world.pacman.y, sentido: "DOWN", poder: poder(world), tiempoInterno:  world.pacman.tiempoInterno }, 
+              juego: world.juego, 
+              cookies: nuevasGalletas(world.cookies, world.pacman.x, world.pacman.y),
+              scoreJuego: world.scoreJuego, 
+              Maxi: world.Maxi,
+              vida: world.vida, 
+              fantasma: { 
+                x: world.fantasma.x, 
+                y: world.fantasma.y, 
+                sentido: world.fantasma.sentido }, 
+              fantasma2: { 
+                x: world.fantasma2.x, 
+                y: world.fantasma2.y, 
+                sentido: world.fantasma2.sentido }, 
+              fantasma3: { 
+                x: world.fantasma3.x, 
+                y: world.fantasma3.y, 
+                sentido: world.fantasma3.sentido }, 
+              fantasma4: { 
+                x: world.fantasma4.x, 
+                y: world.fantasma4.y, 
+                sentido: world.fantasma4.sentido }, 
+              fantasma5: { 
+                x: world.fantasma5.x, 
+                y: world.fantasma5.y, 
+                sentido: world.fantasma5.sentido }  })
+            break;
+          }
+          else if ((world.juego >= 1) && (world.juego < 5)) {
+            return make(world, { 
+              time: world.time + 1, 
+              juego: world.juego + 1,
+              Maxi: world.Maxi })
+          }
+          else if (world.juego == "NORMAL"){
+            return make(world, { 
+              time: world.time + 1, 
+              juego: "DIFICIL",
+              scoreJuego: world.score, 
+              Maxi: world.Maxi })
+          }      
+          return make(world, {})
+
+        case processing.UP:
+          if (world.juego == "JUGAR") {
+            return make(world, { 
+              time: world.time, 
+              pacman: { x: world.pacman.x, y: world.pacman.y, sentido: "UP", poder: poder(world), tiempoInterno:  world.pacman.tiempoInterno  }, 
+              juego: world.juego, 
+              cookies: nuevasGalletas(world.cookies, world.pacman.x, world.pacman.y),
+              scoreJuego: world.scoreJuego, Maxi: world.Maxi,
+              vida: world.vida,
+              Maxi: world.Maxi, 
+              fantasma: { 
+                x: world.fantasma.x, 
+                y: world.fantasma.y, 
+                sentido: world.fantasma.sentido }, 
+              fantasma2: { 
+                x: world.fantasma2.x, 
+                y: world.fantasma2.y, 
+                sentido: world.fantasma2.sentido }, 
+              fantasma3: { 
+                x: world.fantasma3.x, 
+                y: world.fantasma3.y, 
+                sentido: world.fantasma3.sentido }, 
+              fantasma4: { 
+                x: world.fantasma4.x, 
+                y: world.fantasma4.y, 
+                sentido: world.fantasma4.sentido }, 
+              fantasma5: { 
+                x: world.fantasma5.x, 
+                y: world.fantasma5.y, 
+                sentido: world.fantasma5.sentido } })
+          }
+          else if ((world.juego > 1) && (world.juego <= 5)) {
+            return make(world, { 
+              time: world.time + 1, 
+              juego: world.juego - 1, 
+              Maxi: world.Maxi })
+          }
+          else if (world.juego == "DIFICIL"){
+            return make(world, { 
+              time: world.time + 1, 
+              juego: "NORMAL",
+              scoreJuego: world.score, 
+              Maxi: world.Maxi })
+          }      
+          return make(world, {})
+          break;
+        //Barra space
+        case 32:
+          if (world.juego == 0) {
+            return audioStart.play() && make(world, { 
+              time: world.time + 1, 
+              juego: 1})
+          }
+          else if ((world.juego >= 2) && (world.juego <= 4)) {
+            return audio1.play() && make(world, { 
+              time: world.time + 1, 
+              juego: world.juego * (-1), 
+              scoreJuego: world.scoreJuego, 
+              Maxi: world.Maxi })
+          }
+          else if (world.juego == 1) {
+            return audio1.play() && make(world, { 
+              time: world.time + 1, 
+              juego: "NORMAL", 
+              scoreJuego: world.scoreJuego, 
+              Maxi: world.Maxi          
+            })
+          }
+          else if (world.juego == "DIFICIL") {
+            return audio1.play() && make(world, { 
+              time: 0, 
+              pacman: { x: 13, y: 8, sentido: "LEFT", poder: "NO", tiempoInterno: 0 }, 
+              fantasma: { x: 12, y: 5, sentido: "RIGHT"},
+              fantasma2: { x: 14, y: 5, sentido: "LEFT"},
+              fantasma3: { x: 12, y: 6, sentido: "RIGHT"},
+              fantasma4: { x: 14, y: 6, sentido: "LEFT"},
+              fantasma5: { x: 13, y: 3, sentido: "RIGHT"},
+              juego: "JUGAR", 
+              cookies: galletas,
+              specialCookies: galletasEspeciales, 
+              vida: "SI" ,
+              gano: "NO",
+              scoreJuego: 0, 
+              Maxi: world.Maxi,
+              dificultad: "DIFICIL" })
+          }
+          else if (world.juego == "NORMAL") {
+            return audio1.play() && make(world, { 
+              time: 0, 
+              pacman: { x: 13, y: 8, sentido: "LEFT", poder: "NO", tiempoInterno: 0 }, 
+              fantasma: { x: 12, y: 5, sentido: "RIGHT"},
+              fantasma2: { x: 14, y: 5, sentido: "LEFT"},
+              fantasma3: { x: 12, y: 6, sentido: "RIGHT"},
+              fantasma4: { x: 14, y: 6, sentido: "LEFT"},
+              fantasma5: { x: 13, y: 3, sentido: "RIGHT"},
+              juego: "JUGAR", 
+              cookies: galletas,
+              specialCookies: galletasEspeciales,
+              vida: "SI" ,
+              gano: "NO",
+              scoreJuego: 0, 
+              Maxi: world.Maxi,
+              dificultad: "NORMAL" })
+          }         
+          else if (world.juego == 5) {
+            return audio1.play() && make(world, { 
+              time: world.time + 1, 
+              juego: 0, 
+              scoreJuego: world.scoreJuego, Maxi: world.Maxi })
+          }
+          else if (world.juego == "MUERTE"){
+            lose.pause()
+            return audio1.play() && make(world, {
+              time: world.time + 1, 
+              juego: 0, 
+              scoreJuego: world.scoreJuego, 
+              Maxi: world.Maxi
+            })
+          }
+          else if (world.juego == "VICTORIA"){
+            audioWin.load()
+            return audio1.play() && make(world, {
+              time: world.time + 1, 
+              juego: 1, 
+              scoreJuego: world.scoreJuego, 
+              Maxi: world.Maxi,
+              vida: "SI"
+            })
+          }
+          return make(world, {})
+          break;
+        //Letra B
+        case 66:
+          if (world.juego == "JUGAR") {
+            audioDificil.load()
+            audioFacil.load()
+            lose.play()
+            return audioB.play() && make(world, { 
+              time: world.time + 1, 
+              juego: "MUERTE", 
+              scoreJuego: world.scoreJuego,
+              vida: "NO" ,
+              Maxi: almacenadorScore(world.Maxi, world.scoreJuego) })
+            break;
+          }
+          else if ((world.juego == -2) || (world.juego == -3)|| (world.juego == -4)) {
+            return audioB.play() && make(world, { 
+              time: world.time + 1, 
+              juego: world.juego * (-1), 
+              scoreJuego: world.scoreJuego, 
+              Maxi: world.Maxi })
+          }
+          else if ((world.juego == "NORMAL") || (world.juego == "DIFICIL")) {
+            return audioB.play() && make(world, { 
+              time: world.time + 1, 
+              juego: 1, 
+              scoreJuego: world.scoreJuego, 
+              Maxi: world.Maxi })
+          }
+        default:
+          console.log(keyCode);
+          return make(world, {});
+      }
+    }
+
+    // ******************** De aquí hacia abajo no debe cambiar nada. ********************
+    processing.onMouseEvent = function (world, event) {
+      return make(world, {});
+    }
+
+    // Esta es la función que pinta todo. Se ejecuta 60 veces por segundo. 
+    // No cambie esta función. Su código debe ir en drawGame
+    processing.draw = function () {
+      processing.drawGame(processing.state);
+      processing.state = processing.onTic(processing.state);
+    };
+
+    // Esta función se ejecuta cada vez que presionamos una tecla. 
+    // No cambie esta función. Su código debe ir en onKeyEvent
+    processing.keyPressed = function () {
+      processing.state = processing.onKeyEvent(processing.state, processing.keyCode);
+    }
+
+    // Esta función se ejecuta cada vez movemos el mouse. 
+    // No cambie esta función. Su código debe ir en onKeyEvent
+    processing.mouseMoved = function () {
+      processing.state = processing.onMouseEvent(processing.state,
+        { action: "move", mouseX: processing.mouseX, mouseY: processing.mouseY });
+    }
+
+    // Estas funciones controlan los eventos del mouse. 
+    // No cambie estas funciones. Su código debe ir en OnMouseEvent
+    processing.mouseClicked = function () {
+      processing.state = processing.onMouseEvent(processing.state,
+        { action: "click", mouseX: processing.mouseX, mouseY: processing.mouseY, mouseButton: processing.mouseButton });
+    }
+
+    processing.mouseDragged = function () {
+      processing.state = processing.onMouseEvent(processing.state,
+        { action: "drag", mouseX: processing.mouseX, mouseY: processing.mouseY, mouseButton: processing.mouseButton });
+    }
+
+    processing.mousePressed = function () {
+      processing.state = processing.onMouseEvent(processing.state,
+        { action: "press", mouseX: processing.mouseX, mouseY: processing.mouseY, mouseButton: processing.mouseButton });
+    }
+
+    processing.mouseReleased = function () {
+      processing.state = processing.onMouseEvent(processing.state,
+        { action: "release", mouseX: processing.mouseX, mouseY: processing.mouseY, mouseButton: processing.mouseButton });
+    }
+    // Fin de los eventos del mouse
+  }
+  var canvas = document.getElementById("canvas");
+  canvas.focus();
+  // Adjuntamos nuestro sketch al framework de processing
+  var processingInstance = new Processing(canvas, sketchProc);
+</script>
